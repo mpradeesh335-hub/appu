@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pradeesh 3D Gallery</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:Arial;
+  height:100vh;
+  overflow:hidden;
+  color:white;
+  background: linear-gradient(45deg,#ff416c,#ff4b2b,#1e3c72,#2a5298);
+  background-size:400% 400%;
+  animation:bg 12s ease infinite;
+}
+
+@keyframes bg{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.screen{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.8) rotateY(20deg);
+  text-align:center;
+  display:none;
+  transition:0.6s;
+}
+
+.screen.active{
+  display:block;
+  transform:translate(-50%,-50%) scale(1) rotateY(0deg);
+}
+
+h1{margin-bottom:15px;font-size:2.5rem}
+
+button{
+  padding:12px 25px;
+  border:none;
+  border-radius:25px;
+  margin:10px;
+  cursor:pointer;
+  background:white;
+  color:black;
+  transition:0.3s;
+}
+
+button:hover{transform:scale(1.1)}
+
+.preview{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+  width:100%;
+  max-width:600px;
+  margin:20px auto;
+}
+
+.preview img{
+  width:150px;
+  height:150px;
+  object-fit:cover;
+  border-radius:15px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.preview img:hover{
+  transform:scale(1.1) rotateY(10deg);
+}
+
+.preview img{
+  width:120px;
+  border-radius:10px;
+}
+
+.viewer{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.viewer img{
+  max-width:80%;
+  border-radius:15px;
+  transition:transform 0.5s;
+}
+
+.close{
+  position:absolute;
+  top:20px;right:20px;
+  font-size:30px;
+  cursor:pointer;
+}
+
+.arrow{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:40px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.left{left:20px}
+.right{right:20px}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <h1>🔥 Pradeesh 🔥</h1>
+  <button onclick="goDetails()">Click Here</button>
+</div>
+
+<!-- DETAILS -->
+<div id="details" class="screen">
+  <h1>3D Gallery</h1>
+  <button onclick="goPhotos()">View Photos</button>
+</div>
+
+<!-- PHOTOS -->
+<div id="photos" class="screen">
+  <h1>Upload Photos</h1>
+  <input type="file" id="upload" multiple accept="image/*">
+  <div class="preview" id="preview"></div>
+  <button onclick="goHome()">Back</button>
+</div>
+
+<!-- VIEWER -->
+<div class="viewer" id="viewer">
+  <span class="close" onclick="closeViewer()">✖</span>
+  <span class="arrow left" onclick="prev()">❮</span>
+  <img id="viewImg">
+  <span class="arrow right" onclick="next()">❯</span>
+</div>
+
+<script>
+let images=[];
+let current=0;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goDetails(){show('details')}
+function goPhotos(){show('photos')}
+function goHome(){show('home')}
+
+const upload=document.getElementById('upload');
+const preview=document.getElementById('preview');
+const viewer=document.getElementById('viewer');
+const viewImg=document.getElementById('viewImg');
+
+upload.addEventListener('change',function(e){
+  preview.innerHTML='';
+  images=[];
+
+  Array.from(e.target.files).forEach((file,index)=>{
+    const reader=new FileReader();
+    reader.onload=function(event){
+      images.push(event.target.result);
+      const img=document.createElement('img');
+      img.src=event.target.result;
+      img.onclick=()=>openViewer(index);
+      preview.appendChild(img);
+    }
+    reader.readAsDataURL(file);
+  });
+});
+
+function openViewer(index){
+  current=index;
+  viewer.style.display='flex';
+  showImage();
+}
+
+function closeViewer(){viewer.style.display='none'}
+
+function showImage(){
+  viewImg.style.transform='scale(0.5) rotateY(90deg)';
+  setTimeout(()=>{
+    viewImg.src=images[current];
+    viewImg.style.transform='scale(1) rotateY(0deg)';
+  },200);
+}
+
+function next(){
+  current=(current+1)%images.length;
+  showImage();
+}
+
+function prev(){
+  current=(current-1+images.length)%images.length;
+  showImage();
+}
+
+// swipe
+let startX=0;
+viewer.addEventListener('touchstart',e=>startX=e.touches[0].clientX);
+viewer.addEventListener('touchend',e=>{
+  let endX=e.changedTouches[0].clientX;
+  if(startX>endX+50) next();
+  else if(startX<endX-50) prev();
+});
+</script>
+
+</body>
+</html>
